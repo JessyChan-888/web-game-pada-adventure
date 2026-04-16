@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🐼 熊猫探险乐园 - Panda Adventure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 10px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            color: #ff6b6b;
+            text-shadow: 2px 2px 0 #ffe66d;
+        }
+
+        .header .subtitle {
+            font-size: 1rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Panda Mascot */
+        .panda-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .panda {
+            font-size: 4rem;
+            animation: pandaBounce 2s infinite;
+            cursor: pointer;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+        }
+
+        @keyframes pandaBounce {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        .panda.celebrating {
+            animation: pandaCelebrate 0.5s ease;
+        }
+
+        @keyframes pandaCelebrate {
+            0% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.3) rotate(-20deg); }
+            50% { transform: scale(1.3) rotate(20deg); }
+            75% { transform: scale(1.3) rotate(-20deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .panda-speech {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #333;
+            white-space: nowrap;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        .panda-speech.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .panda-speech::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            right: 30px;
+            border: 10px solid transparent;
+            border-top-color: white;
+        }
+
+        /* Module Selection */
+        .module-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .module-card {
+            background: white;
+            border-radius: 25px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 5px solid transparent;
+        }
+
+        .module-card:hover, .module-card:active {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .module-card.numbers {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-color: #ff9a76;
+        }
+
+        .module-card.pinyin {
+            background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+            border-color: #7dd87a;
+        }
+
+        .module-card.chinese {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border-color: #f9a8d4;
+        }
+
+        .module-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            animation: iconFloat 3s ease infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .module-card h2 {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .module-card p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Game Screens */
+        .game-screen {
+            display: none;
+            background: white;
+            border-radius: 25px;
+            padding: 20px;
+            min-height: 500px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-screen.active {
+            display: block;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px dashed #eee;
+        }
+
+        .back-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #ff5252;
+            transform: scale(1.05);
+        }
+
+        .score-display {
+            font-size: 1.2rem;
+            color: #333;
+            background: #ffe66d;
+            padding: 10px 20px;
+            border-radius: 25px;
+        }
+
+        /* Numbers Module - Mountain Theme */
+        .numbers-game {
+            background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 50%, #98D8C8 100%);
+            position: relative;
+        }
+
+        .mountain-bg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 150px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%2365a765' d='M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,224C672,245,768,267,864,250.7C960,235,1056,181,1152,165.3C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom;
+            background-size: cover;
+            pointer-events: none;
+        }
+
+        .target-display {
+            text-align: center;
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 20px;
+        }
+
+        .target-number {
+            font-size: 3rem;
+            color: #ff6b6b;
+            font-weight: bold;
+            display: inline-block;
+            animation: targetPulse 1s ease infinite;
+        }
+
+        @keyframes targetPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .bubbles-container {
+            position: relative;
+            height: 350px;
+            overflow: hidden;
+        }
+
+        .bubble {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.4) 40%, rgba(100,200,255,0.3));
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1), inset 0 -5px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            animation: bubbleFloat linear;
+            border: 3px solid rgba(255,255,255,0.8);
+        }
+
+        .bubble:active {
+            transform: scale(0.9);
+        }
+
+        .bubble.popped {
+            animation: bubblePop 0.3s ease forwards;
+        }
+
+        @keyframes bubblePop {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.7; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        @keyframes bubbleFloat {
+            from { transform: translateY(400px); }
+            to { transform: translateY(-100px); }
+        }
+
+        /* Pinyin Module - Forest Theme */
+        .pinyin-game {
+            background: linear-gradient(180deg, #a8e6cf 0%, #dcedc1 50%, #88d8b0 100%);
+        }
+
+        .forest-bg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%232d5016' d='M0,288L48,272C96,256,192,224,288,213.3C384,203,480,213,576,229.3C672,245,768,267,864,261.3C960,256,1056,224,1152,208C1248,192,1344,192,1392,192L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom;
+            background-size: cover;
+            pointer-events: none;
+        }
+
+        .pinyin-prompt {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #2d5016;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .pinyin-prompt .prompt-label {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .pinyin-prompt .target-pinyin {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #e74c3c;
+            animation: promptBounce 1s ease infinite;
+        }
+
+        @keyframes promptBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pinyin-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .pinyin-letter {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            border: 3px solid #88d8b0;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2d5016;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .pinyin-letter:hover, .pinyin-letter:active {
+            transform: translateY(-5px) scale(1.05);
+            background: #88d8b0;
+            color: white;
+            box-shadow: 0 8px 20px rgba(136,216,176,0.4);
+        }
+
+        .pinyin-letter.correct {
+            background: #2ecc71;
+            border-color: #27ae60;
+            color: white;
+            animation: correctPulse 0.5s ease;
+        }
+
+        .pinyin-letter.wrong {
+            background: #e74c3c;
+            border-color: #c0392b;
+            color: white;
+            animation: wrongShake 0.5s ease;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Chinese Characters Module - Cave Theme */
+        .chinese-game {
+            background: linear-gradient(180deg, #5d4e75 0%, #3d3547 50%, #2a2433 100%);
+        }
+
+        .cave-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255,215,0,0.1) 0%, transparent 30%),
+                radial-gradient(circle at 80% 70%, rgba(255,215,0,0.1) 0%, transparent 30%);
+            pointer-events: none;
+        }
+
+        .treasure-prompt {
+            text-align: center;
+            font-size: 2rem;
+            color: #ffd700;
+            margin-bottom: 20px;
+            background: rgba(0,0,0,0.5);
+            padding: 20px;
+            border-radius: 20px;
+            border: 3px solid #ffd700;
+        }
+
+        .treasure-prompt .prompt-label {
+            font-size: 1rem;
+            color: #ccc;
+            margin-bottom: 10px;
+        }
+
+        .treasure-prompt .target-char {
+            font-size: 5rem;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255,215,0,0.5);
+            animation: treasureGlow 2s ease infinite;
+        }
+
+        @keyframes treasureGlow {
+            0%, 100% { text-shadow: 0 0 20px rgba(255,215,0,0.5); }
+            50% { text-shadow: 0 0 40px rgba(255,215,0,0.8), 0 0 60px rgba(255,215,0,0.4); }
+        }
+
+        .characters-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .character-card {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #4a4a6a 0%, #3a3a5a 100%);
+            border: 3px solid #6a6a8a;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 0 2px 5px rgba(255,255,255,0.1);
+        }
+
+        .character-card:hover, .character-card:active {
+            transform: translateY(-5px);
+            background: linear-gradient(135deg, #5a5a7a 0%, #4a4a6a 100%);
+            border-color: #ffd700;
+            box-shadow: 0 8px 25px rgba(255,215,0,0.3);
+        }
+
+        .character-card.correct {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border-color: #fff;
+            color: #333;
+            animation: treasureFound 0.6s ease;
+        }
+
+        .character-card.wrong {
+            background: #8b0000;
+            border-color: #ff4444;
+            animation: wrongShake 0.5s ease;
+        }
+
+        @keyframes treasureFound {
+            0% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.2) rotate(-10deg); }
+            50% { transform: scale(1.3) rotate(10deg); }
+            75% { transform: scale(1.2) rotate(-5deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        /* Celebration Overlay */
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            flex-direction: column;
+        }
+
+        .celebration.active {
+            display: flex;
+        }
+
+        .celebration-content {
+            text-align: center;
+            animation: celebrationPop 0.5s ease;
+        }
+
+        @keyframes celebrationPop {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .celebration-emoji {
+            font-size: 6rem;
+            margin-bottom: 20px;
+        }
+
+        .celebration h2 {
+            font-size: 2.5rem;
+            color: #ffd700;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(255,215,0,0.5);
+        }
+
+        .celebration p {
+            font-size: 1.3rem;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .celebration-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(255,107,107,0.4);
+        }
+
+        .celebration-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px rgba(255,107,107,0.6);
+        }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+            z-index: 2001;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.4rem;
+            }
+
+            .module-card {
+                padding: 20px 15px;
+            }
+
+            .module-icon {
+                font-size: 3rem;
+            }
+
+            .pinyin-grid {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 8px;
+                padding: 10px;
+            }
+
+            .pinyin-letter {
+                font-size: 1.2rem;
+            }
+
+            .characters-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+
+            .character-card {
+                font-size: 2rem;
+            }
+
+            .panda {
+                font-size: 3rem;
+            }
+
+            .bubble {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Start Screen */
+        .start-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .start-screen .big-panda {
+            font-size: 8rem;
+            animation: bigPandaDance 2s ease infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes bigPandaDance {
+            0%, 100% { transform: rotate(-10deg) scale(1); }
+            50% { transform: rotate(10deg) scale(1.1); }
+        }
+
+        .start-screen h1 {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .start-screen .start-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            border-radius: 40px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102,126,234,0.4);
+        }
+
+        .start-screen .start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(102,126,234,0.6);
+        }
+
+        .stars {
+            font-size: 1.5rem;
+            color: #ffd700;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🐼 熊猫探险乐园</h1>
+            <p class="subtitle">Panda Adventure Learning Game</p>
+        </div>
+
+        <!-- Start Screen -->
+        <div class="start-screen" id="startScreen">
+            <div class="big-panda">🐼</div>
+            <h1>欢迎来到熊猫探险乐园!</h1>
+            <p class="stars">⭐ ⭐ ⭐ ⭐ ⭐</p>
+            <p style="font-size: 1.1rem; color: #666; margin-top: 10px;">和熊猫一起学习数字、拼音和汉字吧!</p>
+            <button class="start-btn" onclick="showModuleSelection()">开始探险 🚀</button>
+        </div>
+
+        <!-- Module Selection -->
+        <div class="module-selection" id="moduleSelection" style="display: none;">
+            <div class="module-card numbers" onclick="startNumbersGame()">
+                <div class="module-icon">🏔️🔢</div>
+                <h2>数字大冒险</h2>
+                <p>Numbers 1-20<br>Mountain Adventure</p>
+            </div>
+            <div class="module-card pinyin" onclick="startPinyinGame()">
+                <div class="module-icon">🌲🔤</div>
+                <h2>拼音森林</h2>
+                <p>Pinyin a-z<br>Forest Exploration</p>
+            </div>
+            <div class="module-card chinese" onclick="startChineseGame()">
+                <div class="module-icon">💎🀄</div>
+                <h2>汉字寻宝洞</h2>
+                <p>Chinese Characters<br>Cave Treasure Hunt</p>
+            </div>
+        </div>
+
+        <!-- Numbers Game -->
+        <div class="game-screen numbers-game" id="numbersGame">
+            <div class="mountain-bg"></div>
+            <div class="game-header">
+                <button class="back-btn" onclick="backToMenu()">⬅️ 返回</button>
+                <div class="score-display">得分: <span id="numbersScore">0</span>/20</div>
+            </div>
+            <div class="target-display">
+                找到数字: <span class="target-number" id="targetNumber">1</span>
+            </div>
+            <div class="bubbles-container" id="bubblesContainer"></div>
+        </div>
+
+        <!-- Pinyin Game -->
+        <div class="game-screen pinyin-game" id="pinyinGame">
+            <div class="forest-bg"></div>
+            <div class="game-header">
+                <button class="back-btn" onclick="backToMenu()">⬅️ 返回</button>
+                <div class="score-display">得分: <span id="pinyinScore">0</span></div>
+            </div>
+            <div class="pinyin-prompt">
+                <div class="prompt-label">点击这个拼音字母:</div>
+                <div class="target-pinyin" id="targetPinyin">a</div>
+            </div>
+            <div class="pinyin-grid" id="pinyinGrid"></div>
+        </div>
+
+        <!-- Chinese Game -->
+        <div class="game-screen chinese-game" id="chineseGame">
+            <div class="cave-bg"></div>
+            <div class="game-header">
+                <button class="back-btn" onclick="backToMenu()">⬅️ 返回</button>
+                <div class="score-display">得分: <span id="chineseScore">0</span></div>
+            </div>
+            <div class="treasure-prompt">
+                <div class="prompt-label">找到这个汉字宝藏:</div>
+                <div class="target-char" id="targetChar">大</div>
+            </div>
+            <div class="characters-grid" id="charactersGrid"></div>
+        </div>
+    </div>
+
+    <!-- Panda Mascot -->
+    <div class="panda-container" id="pandaContainer">
+        <div class="panda" id="panda" onclick="pandaSpeak()">🐼</div>
+        <div class="panda-speech" id="pandaSpeech">你好!我是熊猫老师!🎋</div>
+    </div>
+
+    <!-- Celebration Overlay -->
+    <div class="celebration" id="celebration">
+        <div class="celebration-content">
+            <div class="celebration-emoji">🎉🏆🎊</div>
+            <h2>太棒了!</h2>
+            <p id="celebrationText">你完成了挑战!</p>
+            <button class="celebration-btn" onclick="closeCelebration()">继续探险 🚀</button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== AUDIO SYSTEM ====================
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+        }
+
+        // Sound Effects
+        const SoundEffects = {
+            // Bubble pop sound
+            pop: () => {
+                if (!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                
+                osc.start(audioCtx.currentTime);
+                osc.stop(audioCtx.currentTime + 0.15);
+            },
+
+            // Success sound
+            success: () => {
+                if (!audioCtx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C major arpeggio
+                notes.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.frequency.value = freq;
+                    osc.type = 'sine';
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime + i * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.1 + 0.3);
+                    
+                    osc.start(audioCtx.currentTime + i * 0.1);
+                    osc.stop(audioCtx.currentTime + i * 0.1 + 0.3);
+                });
+            },
+
+            // Wrong answer sound
+            wrong: () => {
+                if (!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(150, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                
+                osc.start(audioCtx.currentTime);
+                osc.stop(audioCtx.currentTime + 0.3);
+            },
+
+            // Celebration sound
+            celebrate: () => {
+                if (!audioCtx) return;
+                // Play a fun tune
+                const melody = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50];
+                melody.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.frequency.value = freq;
+                    osc.type = i % 2 === 0 ? 'sine' : 'triangle';
+                    gain.gain.setValueAtTime(0.25, audioCtx.currentTime + i * 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.15 + 0.25);
+                    
+                    osc.start(audioCtx.currentTime + i * 0.15);
+                    osc.stop(audioCtx.currentTime + i * 0.15 + 0.25);
+                });
+            },
+
+            // Click sound
+            click: () => {
+                if (!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.frequency.value = 600;
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+                
+                osc.start(audioCtx.currentTime);
+                osc.stop(audioCtx.currentTime + 0.05);
+            }
+        };
+
+        // ==================== SPEECH SYNTHESIS ====================
+        function speak(text, lang = 'zh-CN') {
+            if ('speechSynthesis' in window) {
+                // Cancel any ongoing speech
+                window.speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang;
+                utterance.rate = 0.9;
+                utterance.pitch = 1.1;
+                utterance.volume = 1;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // ==================== PANDA MASCOT ====================
+        const pandaMessages = [
+            "你真棒! 🌟",
+            "继续加油! 💪",
+            "好聪明! 🎓",
+            "熊猫为你骄傲! 🐼",
+            "太厉害了! ⭐",
+            "做得好! 👍",
+            "你真聪明! 🌈",
+            "加油加油! 🎉"
+        ];
+
+        function pandaSpeak(message = null) {
+            const speech = document.getElementById('pandaSpeech');
+            const panda = document.getElementById('panda');
+            
+            speech.textContent = message || pandaMessages[Math.floor(Math.random() * pandaMessages.length)];
+            speech.classList.add('show');
+            
+            if (message) {
+                panda.classList.add('celebrating');
+                setTimeout(() => panda.classList.remove('celebrating'), 500);
+            }
+            
+            setTimeout(() => speech.classList.remove('show'), 3000);
+        }
+
+        function celebratePanda() {
+            const panda = document.getElementById('panda');
+            panda.classList.add('celebrating');
+            SoundEffects.celebrate();
+            pandaSpeak("恭喜你! 太棒了! 🎉");
+            setTimeout(() => panda.classList.remove('celebrating'), 500);
+        }
+
+        // ==================== GAME STATE ====================
+        let currentGame = null;
+        let numbersScore = 0;
+        let pinyinScore = 0;
+        let chineseScore = 0;
+        let targetNum = 1;
+        let bubbleInterval = null;
+
+        // ==================== NAVIGATION ====================
+        function showModuleSelection() {
+            initAudio();
+            SoundEffects.click();
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('moduleSelection').style.display = 'grid';
+            speak('选择一个游戏开始吧!', 'zh-CN');
+        }
+
+        function backToMenu() {
+            SoundEffects.click();
+            clearInterval(bubbleInterval);
+            document.querySelectorAll('.game-screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById('moduleSelection').style.display = 'grid';
+            currentGame = null;
+        }
+
+        // ==================== NUMBERS GAME ====================
+        function startNumbersGame() {
+            initAudio();
+            SoundEffects.click();
+            currentGame = 'numbers';
+            numbersScore = 0;
+            targetNum = 1;
+            document.getElementById('numbersScore').textContent = '0';
+            document.getElementById('targetNumber').textContent = '1';
+            document.getElementById('moduleSelection').style.display = 'none';
+            document.getElementById('numbersGame').classList.add('active');
+            
+            speak('数字大冒险开始! 找到数字1', 'zh-CN');
+            startBubbles();
+        }
+
+        function startBubbles() {
+            const container = document.getElementById('bubblesContainer');
+            container.innerHTML = '';
+            
+            // Create initial bubbles
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => createBubble(), i * 800);
+            }
+            
+            // Continue creating bubbles
+            bubbleInterval = setInterval(() => {
+                if (document.querySelectorAll('.bubble').length < 8) {
+                    createBubble();
+                }
+            }, 1500);
+        }
+
+        function createBubble() {
+            const container = document.getElementById('bubblesContainer');
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            
+            // Random number 1-20
+            const num = Math.floor(Math.random() * 20) + 1;
+            bubble.textContent = num;
+            bubble.dataset.number = num;
+            
+            // Random position
+            const left = Math.random() * (container.offsetWidth - 80);
+            bubble.style.left = left + 'px';
+            
+            // Random duration
+            const duration = 4 + Math.random() * 4;
+            bubble.style.animationDuration = duration + 's';
+            
+            bubble.onclick = () => clickBubble(bubble);
+            
+            container.appendChild(bubble);
+            
+            // Remove after animation
+            setTimeout(() => {
+                if (bubble.parentNode) {
+                    bubble.remove();
+                }
+            }, duration * 1000);
+        }
+
+        function clickBubble(bubble) {
+            const num = parseInt(bubble.dataset.number);
+            
+            if (num === targetNum) {
+                // Correct!
+                bubble.classList.add('popped');
+                SoundEffects.pop();
+                speak(num.toString(), 'zh-CN');
+                
+                numbersScore++;
+                document.getElementById('numbersScore').textContent = numbersScore;
+                
+                targetNum++;
+                if (targetNum <= 20) {
+                    document.getElementById('targetNumber').textContent = targetNum;
+                    setTimeout(() => {
+                        speak('找到数字' + targetNum, 'zh-CN');
+                    }, 500);
+                } else {
+                    // Game complete!
+                    setTimeout(() => {
+                        celebratePanda();
+                        showCelebration('你完成了数字大冒险! 1到20全部找到! 🔢');
+                    }, 500);
+                }
+                
+                setTimeout(() => bubble.remove(), 300);
+            } else {
+                // Wrong!
+                SoundEffects.wrong();
+                bubble.style.animation = 'wrongShake 0.5s ease';
+                speak('不对哦,找' + targetNum, 'zh-CN');
+                setTimeout(() => {
+                    bubble.style.animation = 'bubbleFloat linear ' + bubble.style.animationDuration;
+                }, 500);
+            }
+        }
+
+        // ==================== PINYIN GAME ====================
+        const pinyinLetters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 
+                               'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+        let currentPinyinTarget = '';
+
+        function startPinyinGame() {
+            initAudio();
+            SoundEffects.click();
+            currentGame = 'pinyin';
+            pinyinScore = 0;
+            document.getElementById('pinyinScore').textContent = '0';
+            document.getElementById('moduleSelection').style.display = 'none';
+            document.getElementById('pinyinGame').classList.add('active');
+            
+            createPinyinGrid();
+            nextPinyinRound();
+        }
+
+        function createPinyinGrid() {
+            const grid = document.getElementById('pinyinGrid');
+            grid.innerHTML = '';
+            
+            pinyinLetters.forEach(letter => {
+                const cell = document.createElement('div');
+                cell.className = 'pinyin-letter';
+                cell.textContent = letter;
+                cell.dataset.letter = letter;
+                cell.onclick = () => clickPinyinLetter(cell);
+                grid.appendChild(cell);
+            });
+        }
+
+        function nextPinyinRound() {
+            currentPinyinTarget = pinyinLetters[Math.floor(Math.random() * pinyinLetters.length)];
+            document.getElementById('targetPinyin').textContent = currentPinyinTarget;
+            
+            // Clear previous states
+            document.querySelectorAll('.pinyin-letter').forEach(cell => {
+                cell.classList.remove('correct', 'wrong');
+            });
+            
+            speak('点击字母 ' + currentPinyinTarget, 'zh-CN');
+        }
+
+        function clickPinyinLetter(cell) {
+            const letter = cell.dataset.letter;
+            
+            if (letter === currentPinyinTarget) {
+                // Correct!
+                cell.classList.add('correct');
+                SoundEffects.success();
+                speak(letter, 'en-US');
+                
+                pinyinScore++;
+                document.getElementById('pinyinScore').textContent = pinyinScore;
+                
+                if (pinyinScore % 10 === 0) {
+                    celebratePanda();
+                    pandaSpeak('太棒了! 已经' + pinyinScore + '分!');
+                }
+                
+                setTimeout(nextPinyinRound, 1000);
+            } else {
+                // Wrong!
+                cell.classList.add('wrong');
+                SoundEffects.wrong();
+                speak('这是' + letter + ',找' + currentPinyinTarget, 'zh-CN');
+                
+                setTimeout(() => cell.classList.remove('wrong'), 500);
+            }
+        }
+
+        // ==================== CHINESE CHARACTERS GAME ====================
+        const chineseChars = [
+            { char: '大', name: '大', meaning: 'big' },
+            { char: '小', name: '小', meaning: 'small' },
+            { char: '上', name: '上', meaning: 'up' },
+            { char: '下', name: '下', meaning: 'down' },
+            { char: '人', name: '人', meaning: 'person' },
+            { char: '口', name: '口', meaning: 'mouth' },
+            { char: '手', name: '手', meaning: 'hand' },
+            { char: '山', name: '山', meaning: 'mountain' },
+            { char: '水', name: '水', meaning: 'water' },
+            { char: '火', name: '火', meaning: 'fire' }
+        ];
+        let currentCharTarget = null;
+
+        function startChineseGame() {
+            initAudio();
+            SoundEffects.click();
+            currentGame = 'chinese';
+            chineseScore = 0;
+            document.getElementById('chineseScore').textContent = '0';
+            document.getElementById('moduleSelection').style.display = 'none';
+            document.getElementById('chineseGame').classList.add('active');
+            
+            createCharactersGrid();
+            nextCharRound();
+        }
+
+        function createCharactersGrid() {
+            const grid = document.getElementById('charactersGrid');
+            grid.innerHTML = '';
+            
+            // Shuffle and pick 10 characters
+            const shuffled = [...chineseChars].sort(() => Math.random() - 0.5);
+            
+            shuffled.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'character-card';
+                card.textContent = item.char;
+                card.dataset.char = item.char;
+                card.dataset.name = item.name;
+                card.onclick = () => clickCharacter(card);
+                grid.appendChild(card);
+            });
+        }
+
+        function nextCharRound() {
+            // Pick a random character from the grid
+            const cards = document.querySelectorAll('.character-card:not(.correct)');
+            if (cards.length === 0) {
+                // All found! Reset grid
+                createCharactersGrid();
+                nextCharRound();
+                return;
+            }
+            
+            const randomCard = cards[Math.floor(Math.random() * cards.length)];
+            currentCharTarget = randomCard.dataset.char;
+            document.getElementById('targetChar').textContent = currentCharTarget;
+            
+            // Clear previous states
+            document.querySelectorAll('.character-card').forEach(card => {
+                card.classList.remove('wrong');
+            });
+            
+            const charData = chineseChars.find(c => c.char === currentCharTarget);
+            speak('找到' + charData.name, 'zh-CN');
+        }
+
+        function clickCharacter(card) {
+            const char = card.dataset.char;
+            
+            if (char === currentCharTarget) {
+                // Correct!
+                card.classList.add('correct');
+                SoundEffects.success();
+                
+                const charData = chineseChars.find(c => c.char === char);
+                speak(charData.name + ',' + charData.name, 'zh-CN');
+                
+                chineseScore++;
+                document.getElementById('chineseScore').textContent = chineseScore;
+                
+                if (chineseScore % 5 === 0) {
+                    celebratePanda();
+                    createConfetti();
+                }
+                
+                setTimeout(nextCharRound, 1500);
+            } else {
+                // Wrong!
+                card.classList.add('wrong');
+                SoundEffects.wrong();
+                
+                const wrongData = chineseChars.find(c => c.char === char);
+                const targetData = chineseChars.find(c => c.char === currentCharTarget);
+                speak('这是' + wrongData.name + ',找' + targetData.name, 'zh-CN');
+                
+                setTimeout(() => card.classList.remove('wrong'), 500);
+            }
+        }
+
+        // ==================== CELEBRATION ====================
+        function showCelebration(text) {
+            document.getElementById('celebrationText').textContent = text;
+            document.getElementById('celebration').classList.add('active');
+            createConfetti();
+            speak(text, 'zh-CN');
+        }
+
+        function closeCelebration() {
+            SoundEffects.click();
+            document.getElementById('celebration').classList.remove('active');
+            backToMenu();
+        }
+
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#5f27cd', '#00d2d3', '#ffd700'];
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.top = '-10px';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    confetti.style.width = (5 + Math.random() * 10) + 'px';
+                    confetti.style.height = (5 + Math.random() * 10) + 'px';
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    
+                    document.body.appendChild(confetti);
+                    
+                    // Animate falling
+                    let pos = -10;
+                    let speed = 2 + Math.random() * 3;
+                    let wobble = Math.random() * 2;
+                    
+                    const fall = setInterval(() => {
+                        pos += speed;
+                        const wobbleX = Math.sin(pos * 0.05) * wobble * 20;
+                        confetti.style.top = pos + 'px';
+                        confetti.style.left = (parseFloat(confetti.style.left) + wobbleX * 0.01) + 'vw';
+                        confetti.style.transform = `rotate(${pos * 2}deg)`;
+                        
+                        if (pos > window.innerHeight) {
+                            clearInterval(fall);
+                            confetti.remove();
+                        }
+                    }, 20);
+                }, i * 30);
+            }
+        }
+
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Welcome message after a short delay
+            setTimeout(() => {
+                speak('欢迎来到熊猫探险乐园! 点击开始探险吧!', 'zh-CN');
+            }, 1000);
+        });
+
+        // Prevent zoom on double tap for mobile
+        document.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.target.click();
+        }, { passive: false });
+    </script>
+</body>
+</html>
